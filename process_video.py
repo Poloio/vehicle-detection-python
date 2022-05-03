@@ -46,6 +46,43 @@ def process_frames(in_images,dilation_kernel,out_path):
         cv2.drawContours(final_image, valid_contours,-1, (127,200,0), 2)
         cv2.imwrite(out_path+str(i)+'.png', final_image)
 
+def generate_video(frames_path, video_path, fps):
+    """Generates an mp4 video from a collection of frames located in a folder
+
+    Args:
+        frames_path (string): Path where the frames are located.
+        video_path (string): Path where video will be saved.  
+        fps (int): Frames per second for the generated video.
+    """
+    # Retrieve and sort all frame files
+    files = []
+    files = [f for f in os.listdir(processed_path) if isfile(join(processed_path,f))]
+    files.sort(key=lambda f: int(re.sub('\D', '', f)))
+
+    # Read all frame images into a list
+    frame_array = []
+    for i in range(len(files)):
+        filename= processed_path + files[i]
+        
+        #read frames
+        img = cv2.imread(filename)
+        height, width, layers = img.shape
+        size = (width,height)
+        
+        #inserting the frames into an image array
+        frame_array.append(img)
+
+    # Out stream to write the video
+    out = cv2.VideoWriter(path_video,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
+
+    for i in range(len(frame_array)):
+        # writing to a image array
+        out.write(frame_array[i])
+
+    out.release()
+
+    
+
 processed_path = 'processed_frames\\'
 in_images = functions.read_images(constants.FRAME_PATH)
 kernel = np.ones((4,4),np.uint8)
@@ -53,31 +90,7 @@ process_frames(in_images, kernel, processed_path)
 
 path_video = 'result.mp4'
 fps = 14
-files = []
-files = [f for f in os.listdir(processed_path) if isfile(join(processed_path,f))]
-
-files.sort(key=lambda f: int(re.sub('\D', '', f)))
-
-frame_array = []
-for i in range(len(files)):
-    filename= processed_path + files[i]
-    
-    #read frames
-    img = cv2.imread(filename)
-    height, width, layers = img.shape
-    size = (width,height)
-    
-    #inserting the frames into an image array
-    frame_array.append(img)
-
-out = cv2.VideoWriter(path_video,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
-
-for i in range(len(frame_array)):
-    # writing to a image array
-    out.write(frame_array[i])
-
-out.release()
-
+generate_video(processed_path, path_video, fps)
 
 
     
